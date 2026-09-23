@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ultimate Retro Manager (URM) — GB/GBC/GBA/NDS library manager for the 3DS</title>
+<meta name="description" content="A homebrew library manager for the Old 3DS: browse, tag, and organize your GB, GBC, GBA, and NDS collection, and create NDS Home Menu launchers.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#15141a;
+    --panel:#1e1c26;
+    --line:#332f3d;
+    --ink:#eee9dd;
+    --ink-dim:#a9a3b5;
+    --gba:#8b7ec8;
+    --gbc:#8bac0f;
+    --ds:#c9c9d4;
+    --amber:#e0a951;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Space Grotesk', system-ui, sans-serif;
+    line-height:1.5;
+  }
+  code{font-family:ui-monospace, 'SFMono-Regular', Menlo, monospace; font-size:.92em; background:rgba(255,255,255,.06); padding:1px 5px; border-radius:4px;}
+  .wrap{max-width:960px; margin:0 auto; padding:0 24px;}
+  a{color:inherit;}
+
+  header.hero{
+    padding:96px 0 72px;
+    border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg, rgba(139,126,200,.10), transparent 60%);
+  }
+  .badge-row{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:28px;}
+  .badge{font-size:12px; letter-spacing:.02em; padding:5px 10px; border:1px solid var(--line); border-radius:3px; color:var(--ink-dim);}
+  .badge.gba{border-color:var(--gba); color:var(--gba);}
+  .badge.gbc{border-color:var(--gbc); color:var(--gbc);}
+  .badge.ds{border-color:var(--ds); color:var(--ds);}
+
+  h1{
+    font-family:'Press Start 2P', monospace;
+    font-size:clamp(20px, 3.6vw, 30px);
+    line-height:1.6;
+    margin:0 0 22px;
+    max-width:760px;
+    text-wrap:balance;
+  }
+  .lede{font-size:19px; color:var(--ink-dim); max-width:620px; margin:0 0 36px;}
+  .cta-row{display:flex; gap:14px; flex-wrap:wrap;}
+  .btn{display:inline-block; padding:13px 22px; border-radius:6px; font-size:15px; font-weight:600; text-decoration:none; border:1px solid transparent;}
+  .btn.primary{background:var(--gba); color:#151321;}
+  .btn.ghost{border-color:var(--line); color:var(--ink);}
+
+  section{padding:64px 0; border-bottom:1px solid var(--line);}
+  h2{font-size:13px; letter-spacing:.06em; color:var(--ink-dim); margin:0 0 32px; font-weight:600;}
+
+  .flow{display:grid; grid-template-columns:repeat(3, 1fr); gap:0; align-items:center;}
+  .flow-step{background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:26px 20px; text-align:center;}
+  .flow-step .icon{font-size:26px; margin-bottom:14px; display:block;}
+  .flow-step h3{margin:0 0 8px; font-size:16px;}
+  .flow-step p{margin:0; color:var(--ink-dim); font-size:14px;}
+  .flow-arrow{text-align:center; color:var(--ink-dim); font-size:20px; padding:0 8px;}
+
+  table.scope{width:100%; border-collapse:collapse; font-size:15px;}
+  table.scope td{padding:12px 0; border-top:1px solid var(--line);}
+  table.scope tr:first-child td{border-top:none;}
+  table.scope td:first-child{color:var(--ink);}
+  .status{font-size:12px; font-weight:600; padding:3px 9px; border-radius:20px; white-space:nowrap;}
+  .status.done{background:rgba(139,172,15,.15); color:var(--gbc);}
+  .status.planned{background:rgba(224,169,81,.15); color:var(--amber);}
+
+  .systems{display:grid; grid-template-columns:repeat(4, 1fr); gap:14px;}
+  .system{border:1px solid var(--line); border-radius:8px; padding:20px 16px; background:var(--panel); position:relative;}
+  .system .tag{font-family:'Press Start 2P', monospace; font-size:12px; margin-bottom:10px; display:inline-block;}
+  .system p{margin:0; font-size:13px; color:var(--ink-dim);}
+  .system .status{position:absolute; top:14px; right:14px; font-size:10px; padding:2px 7px;}
+  .system.ds .tag{color:var(--ds);}
+  .system.gba .tag, .system.gb .tag, .system.gbc .tag{color:var(--ink-dim);}
+
+  ol.steps{list-style:none; margin:0; padding:0; counter-reset:step;}
+  ol.steps li{counter-increment:step; display:grid; grid-template-columns:36px 1fr; gap:16px; padding:16px 0; border-top:1px solid var(--line);}
+  ol.steps li:first-child{border-top:none;}
+  ol.steps li::before{content:counter(step); font-family:'Press Start 2P', monospace; font-size:13px; color:var(--gba);}
+  ol.steps p{margin:0; color:var(--ink-dim); font-size:15px;}
+  ol.steps strong{color:var(--ink); font-weight:600;}
+
+  ul.reqs{margin:0; padding:0; list-style:none; display:grid; gap:10px;}
+  ul.reqs li{padding-left:20px; position:relative; color:var(--ink-dim); font-size:15px;}
+  ul.reqs li::before{content:"›"; position:absolute; left:0; color:var(--gbc);}
+
+  .disclaimer{background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:22px 24px; font-size:14px; color:var(--ink-dim);}
+  .disclaimer strong{color:var(--ink);}
+
+  footer{padding:40px 0 60px;}
+  footer .wrap{display:flex; justify-content:space-between; flex-wrap:wrap; gap:12px; font-size:13px; color:var(--ink-dim);}
+  footer a{text-decoration:underline; text-underline-offset:3px;}
+
+  @media (max-width:720px){
+    .flow{grid-template-columns:1fr;}
+    .flow-arrow{transform:rotate(90deg); padding:6px 0;}
+    .systems{grid-template-columns:repeat(2,1fr);}
+    table.scope td:first-child{padding-right:12px;}
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="badge-row">
+      <span class="badge gba">GBA</span>
+      <span class="badge gbc">GB</span>
+      <span class="badge gbc">GBC</span>
+      <span class="badge ds">NDS</span>
+    </div>
+    <h1>Your whole retro library, in one place on your 3DS.</h1>
+    <p class="lede">Ultimate Retro Manager (URM) is a homebrew library manager for the Old 3DS. Browse, tag, and organize your GB, GBC, GBA, and NDS collection — and turn your NDS titles into real Home Menu launchers.</p>
+    <div class="cta-row">
+      <a class="btn primary" href="https://github.com/MalicousIntents/BizRetroInjector3DS/releases">Download latest release</a>
+      <a class="btn ghost" href="https://github.com/MalicousIntents/BizRetroInjector3DS">View source on GitHub</a>
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <h2>HOW IT WORKS</h2>
+    <div class="flow">
+      <div class="flow-step">
+        <span class="icon">🗂️</span>
+        <h3>Scan your library</h3>
+        <p>URM reads <code>sdmc:/bmedia/&lt;platform&gt;/</code> and builds a browsable collection.</p>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <span class="icon">⭐</span>
+        <h3>Tag &amp; organize</h3>
+        <p>Favourite, tag, and hide titles from a citro2d UI across both screens.</p>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <span class="icon">🏠</span>
+        <h3>Launch from Home</h3>
+        <p>Create NDS forwarder launchers on your Home Menu, one at a time or in batch.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>SUPPORTED SYSTEMS</h2>
+    <div class="systems">
+      <div class="system gb"><span class="status planned">Planned</span><span class="tag">GB</span><p>Library browsing works today; Home Menu launcher creation is on the roadmap.</p></div>
+      <div class="system gbc"><span class="status planned">Planned</span><span class="tag">GBC</span><p>Library browsing works today; Home Menu launcher creation is on the roadmap.</p></div>
+      <div class="system gba"><span class="status planned">Planned</span><span class="tag">GBA</span><p>Library browsing works today; Home Menu launcher creation is on the roadmap.</p></div>
+      <div class="system ds"><span class="status done">Working</span><span class="tag">NDS</span><p>Full library browsing plus one-tap Home Menu forwarder creation.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>HONEST SCOPE</h2>
+    <table class="scope">
+      <tr><td>GB / GBC / GBA / NDS library browsing, tagging, favourites, hiding</td><td><span class="status done">Done</span></td></tr>
+      <tr><td>NDS Home Menu forwarder creation, with batch support</td><td><span class="status done">Done</span></td></tr>
+      <tr><td>GB / GBC / GBA Home Menu launcher creation</td><td><span class="status planned">Planned</span></td></tr>
+      <tr><td>Artwork download</td><td><span class="status planned">Planned</span></td></tr>
+      <tr><td>Real-hardware validation on an Old 3DS</td><td><span class="status planned">In progress</span></td></tr>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>WHAT YOU'LL NEED</h2>
+    <ul class="reqs">
+      <li>An Old 3DS — New 3DS and 2DS haven't been validated yet</li>
+      <li><a href="https://github.com/LumaTeam/Luma3DS">Luma3DS</a> with sigpatches — the <code>.cia</code> build is test-keyset signed</li>
+      <li><a href="https://github.com/citronacide/NTR_Forwarder">NTR_Forwarder</a> installed, to launch the NDS forwarders URM creates</li>
+      <li>ROMs placed under <code>sdmc:/bmedia/&lt;platform&gt;/</code> on your SD card</li>
+    </ul>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>GETTING STARTED</h2>
+    <ol class="steps">
+      <li><p><strong>Set up CFW</strong> — install Luma3DS with sigpatches if you haven't already.</p></li>
+      <li><p><strong>Install NTR_Forwarder</strong> — URM's NDS launchers call into it to run.</p></li>
+      <li><p><strong>Add your ROMs</strong> — copy them into <code>sdmc:/bmedia/&lt;platform&gt;/</code>, one folder per platform.</p></li>
+      <li><p><strong>Install URM</strong> — copy <code>URM.3dsx</code> to <code>/3ds/</code>, or install <code>URM.cia</code>.</p></li>
+      <li><p><strong>Browse &amp; launch</strong> — tag or favourite what you want, and create Home Menu launchers for your NDS titles.</p></li>
+    </ol>
+  </div>
+</section>
+
+<section style="border-bottom:none;">
+  <div class="wrap">
+    <div class="disclaimer">
+      <strong>A note on ROMs:</strong> URM does not include, host, or link to any copyrighted game files. It only works with ROMs you provide yourself. You're responsible for only using ROMs you've legally dumped from cartridges you own. Custom firmware use is at your own risk.
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>Ultimate Retro Manager (URM) · MIT License</span>
+    <span><a href="https://github.com/MalicousIntents/BizRetroInjector3DS/issues">Report an issue</a> · <a href="https://github.com/MalicousIntents/BizRetroInjector3DS">Source</a></span>
+  </div>
+</footer>
+
+</body>
+</html>
